@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Airbnb Listing System Architecture</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0B0F19;
+      color: #F3F4F6;
+      width: 2400px;
+      height: 1350px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 48px 56px;
+      position: relative;
+    }
+
+    /* Background Ambient Glows */
+    .glow-1 {
+      position: absolute;
+      top: -100px;
+      left: 200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255, 56, 92, 0.12) 0%, rgba(0,0,0,0) 70%);
+      pointer-events: none;
+    }
+    .glow-2 {
+      position: absolute;
+      bottom: -100px;
+      right: 300px;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(0, 138, 255, 0.1) 0%, rgba(0,0,0,0) 70%);
+      pointer-events: none;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 36px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 24px;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .airbnb-logo {
+      width: 44px;
+      height: 44px;
+      fill: #FF385C;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #FFFFFF;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #9CA3AF;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    .header-badges {
+      display: flex;
+      gap: 14px;
+    }
+
+    .badge {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #E5E7EB;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge.pink {
+      background: rgba(255, 56, 92, 0.15);
+      border-color: rgba(255, 56, 92, 0.4);
+      color: #FF708A;
+    }
+
+    /* Main Grid: 4 Pillars */
+    .pillars-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 28px;
+      flex: 1;
+    }
+
+    .pillar {
+      background: rgba(17, 24, 39, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(12px);
+      position: relative;
+    }
+
+    .pillar-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .pillar-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pillar-1 .pillar-icon-box { background: rgba(255, 56, 92, 0.2); color: #FF385C; border: 1px solid rgba(255, 56, 92, 0.4); }
+    .pillar-2 .pillar-icon-box { background: rgba(59, 130, 246, 0.2); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .pillar-3 .pillar-icon-box { background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .pillar-4 .pillar-icon-box { background: rgba(168, 85, 247, 0.2); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.4); }
+
+    .pillar-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .pillar-subtitle {
+      font-size: 13px;
+      color: #9CA3AF;
+    }
+
+    /* Cards inside pillar */
+    .pillar-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .card {
+      background: rgba(31, 41, 55, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 18px;
+      transition: all 0.2s;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(31, 41, 55, 0.85);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #F9FAFB;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-desc {
+      font-size: 12.5px;
+      color: #9CA3AF;
+      line-height: 1.5;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .tech-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #D1D5DB;
+    }
+
+    .highlight-stat {
+      font-size: 11px;
+      font-weight: 700;
+      color: #10B981;
+      background: rgba(16, 185, 129, 0.15);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    /* Flow Connectors Row at Bottom */
+    .data-flow-bar {
+      margin-top: 28px;
+      background: rgba(17, 24, 39, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .flow-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #FF385C;
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .flow-label {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #E5E7EB;
+    }
+
+    .flow-sub {
+      font-size: 11px;
+      color: #9CA3AF;
+    }
+
+    .flow-arrow {
+      color: #6B7280;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-title">
+      <svg class="airbnb-logo" viewBox="0 0 32 32">
+        <path d="M16 1c2.008 0 3.463.963 4.751 3.269l.533 1.025c1.954 3.83 6.114 12.54 7.1 14.836l.145.353c.667 1.591.91 2.472.96 3.396l.011.371c0 4.34-3.328 7.75-7.737 7.75-2.613 0-4.63-1.076-5.763-2.656-1.133 1.58-3.15 2.656-5.763 2.656-4.409 0-7.737-3.41-7.737-7.75 0-.92.247-1.802.915-3.393l.202-.451C4.4 18.064 8.56 9.354 10.514 5.524l.533-1.025C12.336 2.193 13.791 1 16 1zm0 2c-1.31 0-2.228.608-3.18 2.308l-.517.994C10.36 10.117 6.22 18.788 5.3 20.94l-.155.375c-.563 1.344-.745 2.016-.745 2.685 0 3.327 2.455 5.75 5.737 5.75 2.478 0 4.148-1.258 4.773-3.036l.162-.486.29.431c.642 1.954 2.327 3.091 4.775 3.091 3.282 0 5.737-2.423 5.737-5.75 0-.669-.182-1.341-.745-2.685l-.155-.375c-.92-2.152-5.06-10.823-7.003-14.638l-.517-.994C18.228 3.608 17.31 3 16 3zm0 11a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/>
+      </svg>
+      <div>
+        <h1>Airbnb Candolim Stay — Production Scaling Architecture</h1>
+        <div class="subtitle">System Architecture Blueprint: Frontend, Storage, Search, and Deployment Strategies</div>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div class="badge pink">High Availability (99.99%)</div>
+      <div class="badge">React 19 · TypeScript · Vite</div>
+      <div class="badge">Multi-Region Kubernetes</div>
+      <div class="badge">Sub-50ms Latency SLA</div>
+    </div>
+  </header>
+
+  <!-- 4 Pillars Container -->
+  <div class="pillars-container">
+
+    <!-- Pillar 1: FRONTEND SCALING -->
+    <div class="pillar pillar-1">
+      <div class="pillar-header">
+        <div class="pillar-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <div>
+          <div class="pillar-title">1. Frontend Scaling</div>
+          <div class="pillar-subtitle">Edge Delivery & Client Performance</div>
+        </div>
+      </div>
+
+      <div class="pillar-content">
+        <div class="card">
+          <div class="card-title">
+            <span>Global Edge CDN & Caching</span>
+            <span class="highlight-stat">&lt; 25ms TTFB</span>
+          </div>
+          <div class="card-desc">
+            Anycast edge network (Cloudflare / CloudFront) caching static assets, JS/CSS bundles, and HTML at 300+ PoPs worldwide with stale-while-revalidate policies.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Cloudflare</span>
+            <span class="tech-tag">Brotli/Gzip</span>
+            <span class="tech-tag">HTTP/3</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Dynamic Responsive Media Pipeline</span>
+            <span class="highlight-stat">85% Bandwidth Saved</span>
+          </div>
+          <div class="card-desc">
+            Dynamic width parameterization (<code style="color:#FF708A">im_w=720/1200</code>) with automatic WebP/AVIF transcoding and responsive srcset for 43+ high-res room photos.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">getOptimizedImageUrl</span>
+            <span class="tech-tag">WebP / AVIF</span>
+            <span class="tech-tag">Lazy Loading</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Incremental Static Regeneration (ISR)</span>
+            <span class="highlight-stat">High Concurrency</span>
+          </div>
+          <div class="card-desc">
+            Pre-rendered static HTML for top Candolim listings with background revalidation on price/calendar updates, offloading 98% of traffic from origin app servers.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Edge SSR</span>
+            <span class="tech-tag">Micro-caching</span>
+            <span class="tech-tag">Vite / Node</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Client State & Accessibility</span>
+            <span class="highlight-stat">Zero Layout Shift</span>
+          </div>
+          <div class="card-desc">
+            Modular architecture with <code style="color:#60A5FA">useLockBodyScroll</code> and <code style="color:#60A5FA">useFocusTrap</code>. Lazy-loaded Photo Tour & Lightbox dialogs with pure CSS sticky room headers.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">React 19</span>
+            <span class="tech-tag">Pure CSS Sticky</span>
+            <span class="tech-tag">WCAG 2.1 AA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pillar 2: STORAGE SCALING -->
+    <div class="pillar pillar-2">
+      <div class="pillar-header">
+        <div class="pillar-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="pillar-title">2. Storage Scaling</div>
+          <div class="pillar-subtitle">Tiered Data, Caching & Object Stores</div>
+        </div>
+      </div>
+
+      <div class="pillar-content">
+        <div class="card">
+          <div class="card-title">
+            <span>PostgreSQL Read/Write Split</span>
+            <span class="highlight-stat">ACID Compliant</span>
+          </div>
+          <div class="card-desc">
+            Primary instance handles atomic bookings, calendar blocks, and price mutations. Scalable read-replica cluster behind PgBouncer handles listing queries.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Aurora PostgreSQL</span>
+            <span class="tech-tag">PgBouncer</span>
+            <span class="tech-tag">Row Sharding</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Redis Cluster In-Memory Cache</span>
+            <span class="highlight-stat">&lt; 2ms Latency</span>
+          </div>
+          <div class="card-desc">
+            Distributed Redis cluster for calendar availability matrices, dynamic night pricing calculations (₹28,499), rate limiting, and guest reservation locks.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Redis 7</span>
+            <span class="tech-tag">Cluster Sharding</span>
+            <span class="tech-tag">Pub/Sub Eviction</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Object Storage (S3 / R2)</span>
+            <span class="highlight-stat">99.999999999% Durability</span>
+          </div>
+          <div class="card-desc">
+            High-durability geo-replicated object storage for listing assets, host avatars, and 43 original RAW property photos with automated lifecycle archiving.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">AWS S3</span>
+            <span class="tech-tag">Cloudflare R2</span>
+            <span class="tech-tag">Multipart Upload</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>CDC Event Streaming</span>
+            <span class="highlight-stat">Zero Read Impact</span>
+          </div>
+          <div class="card-desc">
+            Debezium captures PostgreSQL WAL events and streams mutations to Apache Kafka to synchronize search engines and cache invalidation instantaneously.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Kafka</span>
+            <span class="tech-tag">Debezium CDC</span>
+            <span class="tech-tag">Event-Driven</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pillar 3: SEARCH SCALING -->
+    <div class="pillar pillar-3">
+      <div class="pillar-header">
+        <div class="pillar-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </div>
+        <div>
+          <div class="pillar-title">3. Search Scaling</div>
+          <div class="pillar-subtitle">Geospatial, Filtering & Ingestion</div>
+        </div>
+      </div>
+
+      <div class="pillar-content">
+        <div class="card">
+          <div class="card-title">
+            <span>Elasticsearch Cluster</span>
+            <span class="highlight-stat">Distributed Indexing</span>
+          </div>
+          <div class="card-desc">
+            Dedicated master and data nodes partitioned across multi-AZs. Inverted index indexing millions of stay listings, reviews, and host metadata.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Elasticsearch 8</span>
+            <span class="tech-tag">Sharded Indices</span>
+            <span class="tech-tag">Read Replicas</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Geospatial Spatial Search</span>
+            <span class="highlight-stat">Radius & Polygon</span>
+          </div>
+          <div class="card-desc">
+            Geo-point indexing on coordinates (Lat: 15.5186, Lng: 73.7634) allowing sub-millisecond bounding box and radius queries for Candolim & North Goa stays.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Geo-Distance</span>
+            <span class="tech-tag">Geo-Hash</span>
+            <span class="tech-tag">Map Clustering</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Multi-Facet Filtering Engine</span>
+            <span class="highlight-stat">&lt; 30ms Complex Filter</span>
+          </div>
+          <div class="card-desc">
+            Fast boolean querying over dates (Oct 18-23, 2026), guest counts (3 guests), amenities (Jacuzzi, Pool, AC), price ranges, and "Guest favourite" status.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Bitset Caching</span>
+            <span class="tech-tag">BM25 Scoring</span>
+            <span class="tech-tag">Facet Aggregations</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Real-time Ingestion Stream</span>
+            <span class="highlight-stat">&lt; 500ms Replication</span>
+          </div>
+          <div class="card-desc">
+            Kafka streaming consumer updates Elasticsearch document records asynchronously within 500ms of any booking or listing change without DB query spikes.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Kafka Consumer</span>
+            <span class="tech-tag">Bulk Indexer</span>
+            <span class="tech-tag">Near Real-Time</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pillar 4: DEPLOYMENT SCALING -->
+    <div class="pillar pillar-4">
+      <div class="pillar-header">
+        <div class="pillar-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><polygon points="12 11 12 17 17 14"/>
+          </svg>
+        </div>
+        <div>
+          <div class="pillar-title">4. Deployment Scaling</div>
+          <div class="pillar-subtitle">Kubernetes, Autoscaling & CI/CD</div>
+        </div>
+      </div>
+
+      <div class="pillar-content">
+        <div class="card">
+          <div class="card-title">
+            <span>Kubernetes (EKS) Orchestration</span>
+            <span class="highlight-stat">Multi-AZ Resilient</span>
+          </div>
+          <div class="card-desc">
+            Containerized microservices running in Amazon EKS across 3 Availability Zones with automated pod scheduling, health probes, and self-healing.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Docker / OCI</span>
+            <span class="tech-tag">AWS EKS</span>
+            <span class="tech-tag">Ingress Controller</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Dynamic Autoscaling (HPA & Karpenter)</span>
+            <span class="highlight-stat">Elastic Pod Burst</span>
+          </div>
+          <div class="card-desc">
+            Horizontal Pod Autoscaler scales pods from 5 to 100+ based on CPU/RPS. Karpenter automatically provisions just-in-time EC2 nodes in seconds.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">K8s HPA</span>
+            <span class="tech-tag">Karpenter</span>
+            <span class="tech-tag">Spot Instances</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Zero-Downtime Blue/Green CI/CD</span>
+            <span class="highlight-stat">Zero User Disruption</span>
+          </div>
+          <div class="card-desc">
+            GitHub Actions automated pipeline with linting, TypeScript verification, unit tests, container packaging, and ArgoCD progressive canary deployments.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">GitHub Actions</span>
+            <span class="tech-tag">ArgoCD</span>
+            <span class="tech-tag">Canary Rollouts</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>APM & Distributed Observability</span>
+            <span class="highlight-stat">Full Trace Visibility</span>
+          </div>
+          <div class="card-desc">
+            Real-time monitoring and anomaly detection with Datadog APM, Prometheus metrics, Grafana dashboards, and OpenTelemetry end-to-end request tracing.
+          </div>
+          <div class="tag-row">
+            <span class="tech-tag">Prometheus</span>
+            <span class="tech-tag">OpenTelemetry</span>
+            <span class="tech-tag">Grafana</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Data Flow Summary Bar -->
+  <div class="data-flow-bar">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div>
+        <div class="flow-label">User Request Ingress</div>
+        <div class="flow-sub">Global CDN Edge Resolution</div>
+      </div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div>
+        <div class="flow-label">Frontend SSR / Hydration</div>
+        <div class="flow-sub">Vite/React 19 & Sticky Layouts</div>
+      </div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div>
+        <div class="flow-label">Elasticsearch Geo-Query</div>
+        <div class="flow-sub">Spatial & Faceted Availability</div>
+      </div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-num">4</div>
+      <div>
+        <div class="flow-label">Redis Cache Hit / DB Fallback</div>
+        <div class="flow-sub">Sub-2ms Nightly Rate Lookup</div>
+      </div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-num">5</div>
+      <div>
+        <div class="flow-label">HPA Autoscaled Execution</div>
+        <div class="flow-sub">Zero-Downtime EKS Microservices</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
